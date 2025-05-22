@@ -1,0 +1,78 @@
+body {
+    font-family: Arial, sans-serif;
+}
+.skripsi-list {
+    margin-bottom: 20px;
+}
+.skripsi-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+.skripsi-item img {
+    width: 40px;
+    margin-right: 15px;
+}
+.skripsi-item-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+.skripsi-item-meta {
+    color: #888;
+    font-size: 0.9rem;
+}
+.filter-box {
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px dashed #ccc;
+    margin-bottom: 20px;
+}
+.arsip-box {
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+.arsip-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.arsip-item img {
+    width: 30px;
+    margin-right: 10px;
+}
+.arsip-item p {
+    margin: 0;
+}
+
+.file-icon {
+    background-color: white; /* Ubah latar belakang gambar menjadi putih */
+    padding: 5px; /* Beri sedikit padding agar ikon tidak menempel di tepi */
+    border-radius: 5px; /* Beri sudut membulat jika diperlukan */
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2); /* Opsional: Beri efek bayangan untuk membuat ikon lebih terlihat */
+}
+
+.skripsi-item-title {
+    display: inline-block;
+    padding-right: 100px; /* Beri ruang untuk tombol download */
+}
+
+.download-btn {
+    display: none; /* Sembunyikan tombol secara default */
+    right: 0;
+    top: 0;
+    transform: translateY(-40%);
+}
+
+.skripsi-item-title:hover .download-btn {
+    display: inline-block; /* Tampilkan tombol saat item di-hover */
+}
+
+.ui-autocomplete {
+    max-height: 500px;  /* Batasi tinggi maksimal */
+    overflow-y: auto;   /* Aktifkan scroll jika lebih dari 10 item */
+    overflow-x: hidden; /* Nonaktifkan scroll horizontal */
+    z-index: 1000;      /* Pastikan daftar autocomplete muncul di atas elemen lain */
+}
+.ui-menu-item {
+    padding: 5px 10px;  /* Atur padding tiap item */
+}

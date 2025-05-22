@@ -1,0 +1,102 @@
+1. membuat authController:
+php artisan make:controller AuthController
+
+if(Auth::attempt(['email' => $request->email, 'password' => $request->password, 'is_admin' => 1, 'status' => 0, 'is_delete' => 0], $remember)){
+            return redirect('admin/dashboard');
+        }else{
+            return redirect()->back()->with('error', 'Please enter current email and password');
+        }
+
+2. membuat ControllerDashboard
+php artisan make:controller ControllerDashboard
+
+3. membuat middleware:
+php artisan make:middleware AdminUserMiddleware
+
+4. membuat RoleController
+php artisan make:controller RoleController
+
+5. buat tabel role, dengan field: id, name, create_at, update_at
+6. buat model Role
+php artisan make:model RoleModel
+
+7. buat UserController
+php artisan make:controller UserController
+
+8. buat tabel permission dengan field: id, name, slug, created_at, updated_at
+
+9. input ke tabel permission:
+
+Dashboard
+
+User
+Add User
+Edit User
+Delete User
+Detail User
+
+Role
+Add Role
+Edit Role
+Delete Role
+
+LoginAs [AddLoginAs, EditLoginAs, DeleteLoginAs, DetailLoginAs] -> 3
+
+SubCategory
+Add Sub Category
+Edit Sub Category
+Delete Sub Category
+
+Product
+Add Product
+Edit Product
+Delete Product
+
+Setting
+
+10. buat model permission:
+php artisan make:model PermissionModel
+
+11. buat tabel permission_role, dengan field: id, role_id, permission_id, created_at, u
+
+12. buat model PermissionRoleModel
+php artisan make:model PermissionRoleModel
+
+Master 7
+    Periode [AddPeriode, EditPeriode, DeletePeriode, DetailPeriode] 8 ->
+    Dosen [AddDosen, EditDosen, DeleteDosen, DetailDosen] 9
+    Mahasiswa [AddMahasiswa, EditMahasiswa, DeleteMahasiswa, DetailMahasiswa] 10
+    Pembayaran [AddPembayaran, EditPembayaran, DeletePembayaran, DetailPembayaran] 11
+    Pejabat [AddPejabat, EditPejabat, DeletePejabat, DetailPejabat] 12
+    TahunAjar [AddTahunAjar, EditTahunAjar, DeleteTahunAjar, DetailTahunAjar] 13 -> rev_tahun_ajaran
+
+DataPokok 14
+    Fakultas [AddFakultas, EditFakultas, DeleteFakultas, DetailFakultas, AddProdiFakultas] 15 -> rev_fakultas
+    PejabatFakultas [AddPejabatFakultas, EditPejabatFakultas, DeletePejabatFakultas, DetailPejabatFakultas] 20 -> m_pimpinan_fakultas
+    Prodi [AddProdi, EditProdi, DeleteProdi, DetailProdi] 16 -> rev_prodi
+    JenisJabatan [AddJabatan, EditJabatan, DeleteJabatan, DetailJabatan] 18 -> m_jenis_jabatan ok
+    JenisPembayaran [AddJenisPembayaran, EditJenisPembayaran, DeleteJenisPembayaran, DetailJenisPembayaran] 19 -> m_jenis_pembayaran
+
+DataRev 21
+    JenisSMS [AddJensiSMS, EditJensiSMS, DeleteJensiSMS, DetailJensiSMS] 22 -> rev_jenis_sms
+
+Keuangan 23
+    PembayaranMahasiswa 24
+    MasterBiaya [AddMasterBiaya, EditMasterBiaya, DeleteMasterBiaya, DetailMasterBiaya] 25
+    KonfigurasiBiaya [AddKonfigurasiBiaya, EditKonfigurasiBiaya, DeleteKonfigurasiBiaya, DetailKonfigurasiBiaya] 26 (SOP) -> m_sop_biaya
+    KonfigurasiSOP [AddKonfigurasiSop, EditKonfigurasiSop, DeleteKonfigurasiSop, DetailKonfigurasiSop] 27 -> t_sop
+    Pembayaran [AddPembayaran, EditPembayaran, DeletePembayaran, DetailPembayaran] 28 -> t_mhs_bayar
+
+Dokumen 29
+    DocSkripsi [AddDocSkripsi, EditDocSkripsi, DeleteDocSkripsi, DetailDocSkripsi] 30
+    DocTesis [AddDocTesis, EditDocTesis, DeleteDocTesis, DetailDocTesis] 31
+    DocPenelitian [AddDocPenelitian, EditDocPenelitian, DeleteDocPenelitian, DetailDocPenelitian] 32
+    DocPengabdian [AddDocPengabdian, EditDocPengabdian, DeleteDocPengabdian, DetailDocPengabdian] 33
+    DocLaporan [AddDocLaporan, EditDocLaporan, DeleteDocLaporan, DetailDocLaporan] 34
+    DocBukuAjar [AddDocBukuAjar, EditDocBukuAjar, DeleteDocBukuAjar, DetailDocBukuAjar] 35
+
+Konfigurasi 36
+    ConfRepo 37
+    ConfRepoFrontendSettings [AddConfRepoFrontendSettings, EditConfRepoFrontendSettings, DeleteConfRepoFrontendSettings, DetailConfRepoFrontendSettings] 38
+    ConfRepoSliders [AddConfRepoSliders, EditConfRepoSliders, DeleteConfRepoSliders, DetailConfRepoSliders] 39
+    ConfRepoCustomPages [AddConfRepoCustomPages, EditConfRepoCustomPages, DeleteConfRepoCustomPages, DetailConfRepoCustomPages] 40

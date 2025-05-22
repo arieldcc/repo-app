@@ -1,0 +1,2 @@
+DETAIL SKRIPSI:
+penulis (nim, nama), title, abstract, keywords, tahun_akademik, status, upload_date, file_path

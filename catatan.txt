@@ -1,0 +1,73 @@
+id_status_mahasiswa ok
+id_prodi ok
+id_agama ok
+id_negara ok
+id_wilayah ok
+id_jenis_tinggal ok
+id_alat_transportasi ok
+id_pendidikan ok
+id_pekerjaan ok
+id_penghasilan ok
+id_kebutuhan_khusus_ ok
+id_perguruan_tinggi ok
+id_prodi ok
+jalur_masuk ok
+jafung ok
+jenis_keluar ok
+ikatan_kerja_sdm
+jalur_evaluasi
+jenis_sertifikasi ok
+jenis_pendaftaran ok
+jenis_sms ok
+jenjang_pendidikan ok
+lembaga_pengangkatan
+status_pegawai ok
+status_keaktifan_pegawai ok
+pangkat_golongan ok
+profil_pt ok
+pembiayaan ok
+jenis_prestasi ok
+kurikulum ok
+fakultas ok
+all_pt ok
+kategori_kegiatan ok
+jenis_evaluasi ok
+jenis_substansi ok
+
+
+riwayat_pendidikan_mahasiswa ok
+mahasiswa ok
+jenis_aktivitas_mahasiswa ok
+
+m_dosen ok
+
+
+php artisan storage:link -> menghubungkan ke media penyimpanan
+sudo chmod -R 775 storage -> memberikan akses media penyimpanan
+
+
+jika masih error:
+sudo chmod -R 777 storage
+sudo chmod -R 777 bootstrap/cache
+php artisan view:clear
+php artisan config:clear
+
+yang diperlukan:
+composer require yajra/laravel-datatables-oracle -> Yajra datatable
+composer require amsey/uuid -> UUID
+
+
+jika tidak bisa menyimpan file:
+1. Setel ulang kepemilikan direktori
+sudo chown -R _www:_www storage
+sudo chown -R _www:_www bootstrap/cache
+Kalau perlu spesifik ke path upload:
+sudo chown -R _www:_www storage/app/public/uploads
+2. Beri izin akses tulis penuh ke folder uploads
+sudo chmod -R 775 storage
+Atau jika masih gagal:
+sudo chmod -R 777 storage/app/public/uploads
+3. Verifikasi permission dengan perintah ini:
+ls -ld storage/app/public/uploads/skripsi
+Harus menghasilkan output seperti:
+drwxrwxr-x  2 _www  _www  ... skripsi
