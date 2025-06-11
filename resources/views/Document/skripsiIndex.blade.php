@@ -72,6 +72,10 @@
             ajax: {
                 url: "{{ url('doc/skripsi') }}",
                 type: 'GET',
+                dataSrc: function (json) {
+                    console.log('🔍 JSON total records:', json.recordsTotal);
+                    return json.data;
+                }
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },

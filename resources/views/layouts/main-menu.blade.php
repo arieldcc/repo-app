@@ -41,9 +41,9 @@
             </a>
             <ul class="nav nav-treeview">
                 <li class="nav-item">
-                    <a href="{{ url('dashboard/v1') }}" class="nav-link {{ Request::segment(2) == 'v1' ? 'active' : '' }}">
+                    <a href="{{ url('dashboard/repodashboard') }}" class="nav-link {{ Request::segment(2) == 'repodashboard' ? 'active' : '' }}">
                         <i class="far fa-circle nav-icon"></i>
-                        <p>Dashboard v1</p>
+                        <p>Dashboard Repository</p>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -72,10 +72,10 @@
         @if (!empty($permissions['permissionSetting']))
 
         <li class="nav-item">
-            <a href="{{ url('panel/setting') }}" class="nav-link {{ Request::segment(2) == 'setting' ? 'active' : '' }}">
+            <a href="{{ url('/') }}" class="nav-link {{ Request::segment(2) == 'setting' ? 'active' : '' }}">
                 <i class="nav-icon fas fa-credit-card"></i>
                 <p>
-                    Setting
+                    Halaman Depan
                 </p>
             </a>
         </li>

@@ -32,6 +32,7 @@ Route::controller(frontRepoController::class)->group(function(){
 
     Route::get('/tesis', 'repoTesis');
     Route::get('/penelitian', 'repoPenelitian');
+    Route::get('/pengabdian', 'repoPengabdian');
 
     Route::get('/penelitian/detail/{type}/{id}', 'docDetail');
 
@@ -107,6 +108,12 @@ Route::group(['middleware' => 'useradmin'], function(){
 
     // Documents
     Route::controller(DocumentController::class)->group(function(){
+        Route::get('dashboard/repodashboard', 'dashboardDoc');
+        Route::get('dashboard/repodashboard/data-filter', 'dashboardData');
+        Route::get('doc/dashboard/pie-prodi', 'dashboardProdiPie')->name('dashboard.pie-prodi');
+        Route::get('doc/dashboard/prodi-by-type', 'getProdiByType')->name('dashboard.prodi-by-type');
+        Route::get('doc/dashboard/chart-per-prodi', 'getChartByProdi')->name('dashboard.chart-by-prodi');
+        
         Route::get('doc/skripsi', 'skripsiList');
         Route::get('doc/skripsi/add', 'skripsiAdd');
         Route::post('doc/skripsi/add', 'skripsiInsert');
@@ -114,7 +121,7 @@ Route::group(['middleware' => 'useradmin'], function(){
         Route::post('doc/skripsi/edit/{id}', 'skripsiUpdate');
         Route::get('doc/skripsi/delete/{id}', 'skripsiDelete');
 
-        Route::get('/api/skripsi/cek-nim/{nim}', 'cekNim');
+        Route::get('/api/cek-nim/{type}/{nim}', 'cekNim');
 
         Route::get('doc/skripsi/detail/{id}', 'skripsiDetail');
 
@@ -133,6 +140,7 @@ Route::group(['middleware' => 'useradmin'], function(){
         Route::post('doc/penelitian/edit/{id}', 'penelitianUpdate');
         Route::get('doc/penelitian/delete/{id}', 'penelitianDelete');
         Route::get('doc/penelitian/detail/{id}', 'penelitianDetail');
+        Route::get('api/check-penelitian', 'checkPenelitian');
 
         Route::get('api/cari-penulis', 'cariPenulis');
 

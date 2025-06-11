@@ -10,7 +10,7 @@
         <div class="card-body">
             <h4 class="mb-3 text-primary">{{ $penelitian->title }}</h4>
 
-            <p><strong>Penulis Utama:</strong> {{ $penelitian->penulis }} <br>
+            <p><strong>Penulis Utama:</strong> {{ $penelitian->penulis_nama }} <br>
                <small class="text-muted">{{ $penelitian->email }}</small> <br>
                <small>{{ $penelitian->afiliasi }}</small>
             </p>

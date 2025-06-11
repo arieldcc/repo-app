@@ -72,7 +72,7 @@
             },
             columns: [
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'penulis', name: 'documents.penulis' },
+                { data: 'penulis_nama', name: 'documents.penulis_nama' },
                 { data: 'email', name: 'documents.email' },
                 { data: 'title', name: 'documents.title' },
                 { data: 'upload_date', name: 'documents.upload_date' },

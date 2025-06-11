@@ -32,7 +32,7 @@
                         <div class="form-group">
                             <label for="penulis">Nama Penulis</label>
                             <select name="penulis" id="penulis" class="form-control select2bs4" required>
-                                <option value="{{ $getPenelitian->penulis }}" selected>{{ $getPenelitian->penulis }}</option>
+                                <option value="{{ $getPenelitian->penulis_nama }}" selected>{{ $getPenelitian->penulis_nama }}</option>
                             </select>
                             <small class="form-text text-muted">Jika tidak ditemukan, tulis manual nama penulis</small>
                         </div>
@@ -142,6 +142,14 @@
                     <div class="form-group">
                         <label for="indeks_lainnya">Indeks Lainnya</label>
                         <input type="text" name="indeks_lainnya" id="indeks_lainnya" class="form-control" value="{{ $getPenelitian->indeks_lainnya }}" placeholder="bisa lebih dari 1 lembaga indeks">
+                    </div>
+                    <div class="form-group">
+                        <label for="nama_jurnal">Nama Jurnal</label>
+                        <input type="text" name="nama_jurnal" id="nama_jurnal" class="form-control" value="{{ $getPenelitian->nama_jurnal }}" placeholder="ex. Jurnal Ilmiah Ilmu Komputer Banthayo Lo Komputer">
+                    </div>
+                    <div class="form-group">
+                        <label for="doi">DOI</label>
+                        <input type="text" name="doi" id="doi" class="form-control" value="{{ $getPenelitian->doi }}" placeholder="ex. 10.1109/ICOEI65986.2025.11013214">
                     </div>
                     <div class="form-group">
                         <label for="link_jurnal">Link Jurnal</label>

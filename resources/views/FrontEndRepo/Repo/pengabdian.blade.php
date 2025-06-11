@@ -6,7 +6,7 @@
 
 @section('content')
 <div class="col-md-8">
-    <h2>PENELITIAN</h2>
+    <h2>PENGABDIAN</h2>
     <p>Halaman {{ $page }} dari {{ $total_pages }} &mdash; Total Data: {{ $jum_data }}</p>
 
     <div class="filter-box">
@@ -14,7 +14,7 @@
             <div class="col-md-6">
                 <label for="pencarian_">Pencarian Berdasarkan:</label>
                 <select name="pencarian" id="pencarian_" class="form-control">
-                    <option value="judul">Judul Penelitian</option>
+                    <option value="judul">Judul Pengabdian</option>
                     <option value="abstrak">Abstrak</option>
                 </select>
             </div>
@@ -44,17 +44,17 @@
     </div>
 
     <div class="skripsi-list mt-4">
-        @forelse($penelitian_data as $item)
+        @forelse($pengabdian_data as $item)
         <div class="skripsi-item d-flex align-items-start">
             <img src="{{ asset('public/repo/img/' . $item->icon) }}" alt="File Icon">
             <div>
                 <p class="skripsi-item-title position-relative">
-                    <a href="{{ url('/penelitian/detail/penelitian/' . $item->document_id) }}" class="text-decoration-none text-dark">
+                    <a href="{{ url('/penelitian/detail/pengabdian/' . $item->document_id) }}" class="text-decoration-none text-dark">
                         {{ $item->title }}
                     </a>
 
                     @if ($item->file_path)
-                        <a href="{{ url('doc/download/penelitian/' . $item->document_id) }}" class="download-btn btn btn-success position-absolute" target="_blank">
+                        <a href="{{ url('doc/download/pengabdian/' . $item->document_id) }}" class="download-btn btn btn-success position-absolute" target="_blank">
                             <img src="{{ asset('public/repo/img/' . $item->icon) }}" alt="File Icon" class="file-icon"> Download
                         </a>
                     @else
@@ -65,11 +65,10 @@
             </div>
         </div>
         @empty
-        <p>Tidak ada data penelitian.</p>
+        <p>Tidak ada data pengabdian.</p>
         @endforelse
     </div>
 
-    <!-- Pagination -->
     <nav aria-label="Page navigation">
         <ul class="pagination">
             <li class="page-item {{ $page == 1 ? 'disabled' : '' }}">
@@ -105,7 +104,7 @@
                         {{ $tahun->tahun_akademik }}
                     </a>
                     <br>
-                    <small>Penelitian tahun {{ $tahun->tahun_akademik }}: {{ $tahun->jumlah_data }} data</small>
+                    <small>Pengabdian tahun {{ $tahun->tahun_akademik }}: {{ $tahun->jumlah_data }} data</small>
                 </p>
             </div>
         </div>

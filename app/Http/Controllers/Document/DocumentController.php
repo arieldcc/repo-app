@@ -10,13 +10,156 @@ use App\Models\Master\MahasiswaModel;
 use App\Models\PermissionRoleModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
+    public function dashboardDoc(){
+        // Summary jumlah per kategori
+        $countSkripsi    = DocumentModel::where('type', 'skripsi')->count();
+        $countTesis      = DocumentModel::where('type', 'tesis')->count();
+        $countPenelitian = DocumentModel::where('type', 'penelitian')->count();
+        $countPengabdian = DocumentModel::where('type', 'pengabdian')->count();
+
+        // Statistik status
+        $statusCounts = DocumentModel::selectRaw('status, COUNT(*) as total')
+                        ->groupBy('status')
+                        ->pluck('total', 'status');
+
+        // Data grafik tren per tahun
+        $yearlyUploads = DocumentModel::selectRaw('tahun_akademik, COUNT(*) as total')
+                            ->groupBy('tahun_akademik')
+                            ->orderBy('tahun_akademik', 'asc')
+                            ->get();
+
+        // Top 5 penulis Penelitian
+        $topAuthorsPenelitian = DocumentModel::where('type', 'penelitian')
+                            ->selectRaw('penulis_nama, COUNT(*) as total')
+                            ->groupBy('penulis_nama')
+                            ->orderByDesc('total')
+                            ->limit(5)
+                            ->get();
+
+        // Top 5 penulis Pengabdian
+        $topAuthorsPengabdian = DocumentModel::where('type', 'pengabdian')
+                            ->selectRaw('penulis_nama, COUNT(*) as total')
+                            ->groupBy('penulis_nama')
+                            ->orderByDesc('total')
+                            ->limit(5)
+                            ->get();
+
+        return view('Document.dashboard', compact(
+            'countSkripsi',
+            'countTesis',
+            'countPenelitian',
+            'countPengabdian',
+            'statusCounts',
+            'yearlyUploads',
+            'topAuthorsPenelitian',
+            'topAuthorsPengabdian'
+        ));
+    }
+
+    public function dashboardData(Request $request){
+        $query = DocumentModel::query();
+
+        // Filter berdasarkan Tahun Akademik
+        if ($request->filled('tahun_akademik')) {
+            $query->where('tahun_akademik', $request->tahun_akademik);
+        }
+
+        // Filter berdasarkan Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter berdasarkan Rentang Tanggal Upload
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('upload_date', [$request->start_date, $request->end_date]);
+        }
+
+        // Ambil total berdasarkan tipe
+        $perType = $query->selectRaw('type, COUNT(*) as total')
+                    ->groupBy('type')
+                    ->pluck('total', 'type');
+
+        return response()->json([
+            'skripsi'    => $perType['skripsi'] ?? 0,
+            'tesis'      => $perType['tesis'] ?? 0,
+            'penelitian' => $perType['penelitian'] ?? 0,
+            'pengabdian' => $perType['pengabdian'] ?? 0,
+        ]);
+    }
+
+    public function dashboardProdiPie(Request $request){
+        $type = $request->get('type'); // 'skripsi' atau 'tesis'
+
+        if (!in_array($type, ['skripsi', 'tesis'])) {
+            return response()->json([]);
+        }
+
+        $data = DocumentModel::selectRaw('m_riwayat_pendidikan_mhs.nama_program_studi, COUNT(*) as total')
+                    ->join('m_riwayat_pendidikan_mhs', 'm_riwayat_pendidikan_mhs.nim', '=', 'documents.penulis')
+                    ->where('documents.type', $type)
+                    ->groupBy('m_riwayat_pendidikan_mhs.nama_program_studi')
+                    ->orderByDesc('total')
+                    ->get();
+
+        return response()->json([
+            'labels' => $data->pluck('nama_program_studi'),
+            'data' => $data->pluck('total'),
+        ]);
+    }
+
+    public function getProdiByType(Request $request){
+        $type = $request->get('type');
+        if (!in_array($type, ['skripsi', 'tesis'])) {
+            return response()->json([]);
+        }
+
+        $prodiList = DocumentModel::select('m_riwayat_pendidikan_mhs.nama_program_studi')
+            ->join('m_riwayat_pendidikan_mhs', 'm_riwayat_pendidikan_mhs.nim', '=', 'documents.penulis')
+            ->where('documents.type', $type)
+            ->groupBy('m_riwayat_pendidikan_mhs.nama_program_studi')
+            ->pluck('m_riwayat_pendidikan_mhs.nama_program_studi');
+
+        return response()->json($prodiList);
+    }
+
+    public function getChartByProdi(Request $request){
+        $type = $request->get('type');
+        $prodi = $request->get('prodi');
+
+        if (!in_array($type, ['skripsi', 'tesis']) || empty($prodi)) {
+            return response()->json([]);
+        }
+
+        $data = DocumentModel::selectRaw('documents.tahun_akademik, COUNT(*) as total')
+            ->join('m_riwayat_pendidikan_mhs', 'm_riwayat_pendidikan_mhs.nim', '=', 'documents.penulis')
+            ->where('documents.type', $type)
+            ->where('m_riwayat_pendidikan_mhs.nama_program_studi', $prodi)
+            ->groupBy('documents.tahun_akademik')
+            ->orderBy('documents.tahun_akademik')
+            ->get();
+
+        return response()->json([
+            'labels' => $data->pluck('tahun_akademik'),
+            'data' => $data->pluck('total'),
+        ]);
+    }
+    
     public function skripsiList(Request $request){
+
+        // DB::listen(function ($query) {
+        //     Log::info('⏱️ SQL: '.$query->sql);
+        //     Log::info('⏱️ Bindings: ', $query->bindings);
+        //     Log::info('⏱️ Time: '.$query->time.' ms');
+        // });
+
         $permissions = getUserPermissions();
 
         // Cek apakah user memiliki akses melihat dokumen skripsi
@@ -27,7 +170,8 @@ class DocumentController extends Controller
         // Jika request adalah AJAX (untuk DataTables)
         if ($request->ajax()) {
             $data = DocumentModel::getListTugasAkhir()
-                            ->where('documents.type', 'skripsi');
+                            ->where('documents.type', 'skripsi')
+                            ->orderBy('documents.upload_date', 'DESC');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -71,8 +215,16 @@ class DocumentController extends Controller
         return view('Document.skripsiAdd');
     }
 
-    public function cekNim($nim){
-        $data = DocumentModel::where('penulis', $nim)->where('type', 'skripsi')->first();
+    public function cekNim($type, $nim){
+        $allowedTypes = ['skripsi', 'tesis'];
+
+        if (!in_array($type, $allowedTypes)) {
+            return response()->json(['exists' => false, 'data' => null], 400); // Bad Request
+        }
+
+        $data = DocumentModel::where('penulis', $nim)
+                            ->where('type', $type)
+                            ->first();
 
         return response()->json([
             'exists' => $data ? true : false,
@@ -87,7 +239,7 @@ class DocumentController extends Controller
             'abstract'        => 'nullable|string',
             'keywords'        => 'nullable|string',
             'tahun_akademik'  => 'required|string|max:10',
-            'file_path'       => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120' // 5MB, valid extensions
+            'file_path'       => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png' // 5MB, valid extensions
         ]);
 
         // Tentukan status otomatis berdasarkan role
@@ -142,7 +294,7 @@ class DocumentController extends Controller
             'abstract'        => 'nullable|string',
             'keywords'        => 'nullable|string',
             'tahun_akademik'  => 'required|string|max:10',
-            'file_path'       => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120'
+            'file_path'       => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png'
         ]);
 
         $skripsi = DocumentModel::findOrFail($id);
@@ -249,7 +401,7 @@ class DocumentController extends Controller
             'abstract'        => 'nullable|string',
             'keywords'        => 'nullable|string',
             'tahun_akademik'  => 'required|string|max:10',
-            'file_path'       => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120' // 5MB, valid extensions
+            'file_path'       => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png' // 5MB, valid extensions
         ]);
 
         // Tentukan status otomatis berdasarkan role
@@ -311,7 +463,7 @@ class DocumentController extends Controller
             'abstract'        => 'nullable|string',
             'keywords'        => 'nullable|string',
             'tahun_akademik'  => 'required|string|max:10',
-            'file_path'       => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120'
+            'file_path'       => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png'
         ]);
 
         $tesis = DocumentModel::findOrFail($id);
@@ -376,7 +528,8 @@ class DocumentController extends Controller
         // Jika request adalah AJAX (untuk DataTables)
         if ($request->ajax()) {
             $data = DocumentModel::getListPenelitian()
-                            ->where('documents.type', 'penelitian');
+                            ->where('documents.type', 'penelitian')
+                            ->orderBy('documents.upload_date', 'DESC');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -427,6 +580,8 @@ class DocumentController extends Controller
             'indeks_internasional'     => 'nullable|in:Y,N',
             'peringkat_internasional'  => 'nullable|string|max:200',
             'indeks_lainnya'           => 'nullable|string|max:200',
+            'nama_jurnal'               => 'nullable|string|max:250',
+            'doi'                       => 'nullable|string|max:250',
             'link_jurnal'              => 'nullable|url|max:200',
             'tahun_akademik'           => 'required|string|max:5',
             'file_path'                => 'nullable|file|mimes:pdf|max:5120',
@@ -454,7 +609,7 @@ class DocumentController extends Controller
 
         $doc = new DocumentModel;
         // $doc->document_id             = $documentId;
-        $doc->penulis                 = strtoupper($request->penulis);
+        $doc->penulis_nama            = strtoupper($request->penulis);
         $doc->email                   = $request->email;
         $doc->afiliasi                = $request->afiliasi;
         $doc->title                   = $request->title;
@@ -468,8 +623,10 @@ class DocumentController extends Controller
         $doc->indeks_internasional    = $request->terbit === 'Y' ? $request->indeks_internasional : null;
         $doc->peringkat_internasional = $request->terbit === 'Y' && $request->indeks_internasional === 'Y' ? $request->peringkat_internasional : null;
         $doc->indeks_lainnya          = $request->terbit === 'Y' ? $request->indeks_lainnya : null;
+        $doc->nama_jurnal             = $request->terbit === 'Y' ? $request->nama_jurnal : null;
+        $doc->doi                     = $request->terbit === 'Y' ? $request->doi : null;
         $doc->link_jurnal             = $request->terbit === 'Y' ? $request->link_jurnal : null;
-        $doc->upload_date             = now()->format('Y-m-d');
+        $doc->upload_date             = now();
         $doc->type                    = 'penelitian';
         $doc->file_path               = $fileName;
         $doc->file_size               = $fileSize;
@@ -539,22 +696,24 @@ class DocumentController extends Controller
         }
 
         // Update field lainnya
-        $penelitian->penulis = $request->penulis;
-        $penelitian->email = $request->email;
-        $penelitian->afiliasi = $request->afiliasi;
-        $penelitian->title = $request->title;
-        $penelitian->abstract = $request->abstract;
-        $penelitian->keywords = $request->keywords;
-        $penelitian->biaya_penelitian = $request->biaya_penelitian;
-        $penelitian->lembaga_biaya = $request->biaya_penelitian == 'Dibiayai' ? $request->lembaga_biaya : null;
-        $penelitian->terbit = $request->terbit;
-        $penelitian->indeks_nasional = $request->indeks_nasional ?? 'N';
-        $penelitian->peringkat_nasional = $request->indeks_nasional == 'Y' ? $request->peringkat_nasional : null;
-        $penelitian->indeks_internasional = $request->indeks_internasional ?? 'N';
-        $penelitian->peringkat_internasional = $request->indeks_internasional == 'Y' ? $request->peringkat_internasional : null;
-        $penelitian->indeks_lainnya = $request->indeks_lainnya;
-        $penelitian->link_jurnal = $request->link_jurnal;
-        $penelitian->tahun_akademik = $request->tahun_akademik;
+        $penelitian->penulis_nama               = $request->penulis;
+        $penelitian->email                      = $request->email;
+        $penelitian->afiliasi                   = $request->afiliasi;
+        $penelitian->title                      = $request->title;
+        $penelitian->abstract                   = $request->abstract;
+        $penelitian->keywords                   = $request->keywords;
+        $penelitian->biaya_penelitian           = $request->biaya_penelitian;
+        $penelitian->lembaga_biaya              = $request->biaya_penelitian == 'Dibiayai' ? $request->lembaga_biaya : null;
+        $penelitian->terbit                     = $request->terbit;
+        $penelitian->indeks_nasional            = $request->indeks_nasional ?? 'N';
+        $penelitian->peringkat_nasional         = $request->indeks_nasional == 'Y' ? $request->peringkat_nasional : null;
+        $penelitian->indeks_internasional       = $request->indeks_internasional ?? 'N';
+        $penelitian->peringkat_internasional    = $request->indeks_internasional == 'Y' ? $request->peringkat_internasional : null;
+        $penelitian->indeks_lainnya             = $request->indeks_lainnya;
+        $penelitian->nama_jurnal                = $request->nama_jurnal;
+        $penelitian->doi                        = $request->doi;
+        $penelitian->link_jurnal                = $request->link_jurnal;
+        $penelitian->tahun_akademik             = $request->tahun_akademik;
 
         $penelitian->save();
 
@@ -597,6 +756,32 @@ class DocumentController extends Controller
         return redirect('doc/penelitian')->with('success', 'Data penelitian berhasil dihapus.');
     }
 
+    public function checkPenelitian(Request $request){
+        $judul = $request->get('title');
+
+        $query = DocumentModel::query()->where('type', 'penelitian');
+
+        // Kombinasi: cari yang judulnya sama ATAU doi sama (tapi tetap type penelitian)
+        $query->where(function($q) use ($judul) {
+            if ($judul) {
+                $q->where('title', $judul);
+            }
+        });
+
+        $doc = $query->first();
+
+        if ($doc) {
+            $authors = DocumentAuthorsModel::where('document_id', $doc->document_id)->get();
+            return response()->json([
+                'exists' => true,
+                'data' => $doc,
+                'authors' => $authors
+            ]);
+        } else {
+            return response()->json(['exists' => false]);
+        }
+    }
+
     public function cariPenulis(Request $request){
         $q = $request->get('q');
 
@@ -622,11 +807,11 @@ class DocumentController extends Controller
         // Ambil semua jenjang mahasiswa
         $mahasiswa = MahasiswaModel::getRecordList()
             ->where(function($query) use ($q) {
-                $query->where('m_mahasiswa.nama_mahasiswa', 'LIKE', '%' . $q . '%')
-                    ->orWhere('m_riwayat_pendidikan_mhs.nim', 'LIKE', '%' . $q . '%');
+                $query->where('m_mahasiswa.nama_mahasiswa', 'LIKE', "%$q%")
+                    ->orWhere('m_riwayat_pendidikan_mhs.nim', 'LIKE', "%$q%");
             })
-            ->limit(10)
-            ->get()
+            ->limit(20)
+            ->get(['nim_mahasiswa', 'nama_mahasiswa'])
             ->map(function($item) {
                 return [
                     'id' => $item->nama_mahasiswa,
@@ -659,7 +844,8 @@ class DocumentController extends Controller
 
         if ($request->ajax()) {
             $data = DocumentModel::getListPenelitian()
-                        ->where('documents.type', 'pengabdian');
+                        ->where('documents.type', 'pengabdian')
+                        ->orderBy('documents.upload_date', 'DESC');
 
             return DataTables::of($data)
                 ->addIndexColumn()
@@ -730,7 +916,7 @@ class DocumentController extends Controller
         }
 
         $doc = new DocumentModel;
-        $doc->penulis                 = strtoupper($request->penulis);
+        $doc->penulis_nama            = strtoupper($request->penulis);
         $doc->email                   = $request->email;
         $doc->afiliasi                = $request->afiliasi;
         $doc->title                   = $request->title;
@@ -743,7 +929,7 @@ class DocumentController extends Controller
         $doc->peringkat_nasional      = $request->terbit === 'Y' && $request->indeks_nasional === 'Y' ? $request->peringkat_nasional : null;
         $doc->indeks_lainnya          = $request->terbit === 'Y' ? $request->indeks_lainnya : null;
         $doc->link_jurnal             = $request->terbit === 'Y' ? $request->link_jurnal : null;
-        $doc->upload_date             = now()->format('Y-m-d');
+        $doc->upload_date             = now();
         $doc->type                    = 'pengabdian';
         $doc->file_path               = $fileName;
         $doc->file_size               = $fileSize;
@@ -812,19 +998,19 @@ class DocumentController extends Controller
         }
 
         // Update data
-        $pengabdian->penulis = strtoupper($request->penulis);
-        $pengabdian->email = $request->email;
-        $pengabdian->afiliasi = $request->afiliasi;
-        $pengabdian->title = $request->title;
-        $pengabdian->abstract = $request->abstract;
-        $pengabdian->keywords = $request->keywords;
+        $pengabdian->penulis_nama   = strtoupper($request->penulis);
+        $pengabdian->email          = $request->email;
+        $pengabdian->afiliasi       = $request->afiliasi;
+        $pengabdian->title          = $request->title;
+        $pengabdian->abstract       = $request->abstract;
+        $pengabdian->keywords       = $request->keywords;
         $pengabdian->biaya_penelitian = $request->biaya_penelitian;
-        $pengabdian->lembaga_biaya = $request->biaya_penelitian === 'Dibiayai' ? $request->lembaga_biaya : null;
+        $pengabdian->lembaga_biaya  = $request->biaya_penelitian === 'Dibiayai' ? $request->lembaga_biaya : null;
         $pengabdian->terbit = $request->terbit;
         $pengabdian->indeks_nasional = $request->terbit === 'Y' ? ($request->indeks_nasional ?? 'N') : null;
         $pengabdian->peringkat_nasional = $request->terbit === 'Y' && $request->indeks_nasional === 'Y' ? $request->peringkat_nasional : null;
         $pengabdian->indeks_lainnya = $request->terbit === 'Y' ? $request->indeks_lainnya : null;
-        $pengabdian->link_jurnal = $request->terbit === 'Y' ? $request->link_jurnal : null;
+        $pengabdian->link_jurnal    = $request->terbit === 'Y' ? $request->link_jurnal : null;
         $pengabdian->tahun_akademik = $request->tahun_akademik;
         $pengabdian->save();
 

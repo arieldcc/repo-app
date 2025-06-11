@@ -31,7 +31,7 @@ class MahasiswaModel extends Model
     static public function getRecordList(){
         return self::select(
                     'm_mahasiswa.id_mahasiswa',
-                    'm_mahasiswa.nama_mahasiswa',
+                    'm_mahasiswa.nama_mahasiswa as nama_mahasiswa',
                     'm_riwayat_pendidikan_mhs.nim as nim_mahasiswa',
                     DB::raw("CASE
                         WHEN m_mahasiswa.jenis_kelamin = 'L' THEN 'Laki-laki'

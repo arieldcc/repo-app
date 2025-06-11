@@ -27,6 +27,7 @@
                                 <option value="{{ old('penulis') }}" selected>{{ old('penulis') }}</option>
                             @endif
                         </select>
+                        <input type="hidden" name="document_id" id="document_id" value="">
                     </div>
 
                     <div class="form-group">
@@ -54,6 +55,12 @@
                         <label for="file_path">Upload File</label>
                         <input type="file" name="file_path" id="file_path" class="form-control-file" accept=".pdf,.doc,.docx,.jpg,.png">
                         <small class="text-muted">Maks 5MB. Format: pdf, doc, docx, jpg, png.</small>
+
+                        <div id="existing-file" class="mt-3" style="display: none;">
+                            <label>Berkas Tersimpan:</label>
+                            <p id="file-name"></p>
+                            <div id="file-preview" style="max-height: 400px; overflow: auto;"></div>
+                        </div>
                     </div>
 
                 </div>
@@ -96,5 +103,55 @@
             }
         });
     });
+
+    $('#nim').on('change', function () {
+        let nim = $(this).val();
+
+        $.get("{{ url('api/cek-nim/tesis') }}/" + nim, function(res) {
+            if (res && res.exists && res.data) {
+                // Tampilkan file jika tersedia
+                if (res.data.file_path) {
+                    $('#existing-file').show();
+                    $('#file-name').text(res.data.file_path);
+
+                    const fileUrl = "{{ url('public/storage/uploads/tesis') }}/" + res.data.file_path;
+                    const fileExtension = res.data.file_path.split('.').pop().toLowerCase();
+
+                    if (fileExtension === 'pdf') {
+                        $('#file-preview').html(`<embed src="${fileUrl}" type="application/pdf" width="100%" height="400px" />`);
+                    } else {
+                        $('#file-preview').html(`<a href="${fileUrl}" target="_blank" class="btn btn-sm btn-info">Lihat / Download File</a>`);
+                    }
+                } else {
+                    $('#existing-file').hide();
+                    $('#file-preview').html('');
+                    $('#file-name').text('');
+                }
+
+                // Populate form
+                $('#document_id').val(res.data.document_id);
+                $('#title').val(res.data.title);
+                $('#abstract').val(res.data.abstract);
+                $('#keywords').val(res.data.keywords);
+                $('#tahun_akademik').val(res.data.tahun_akademik);
+                $('form').attr('action', "{{ url('doc/tesis/edit/') }}/" + res.data.document_id);
+
+            } else {
+                // Kosongkan form jika tidak ditemukan
+                $('#document_id').val('');
+                $('#title').val('');
+                $('#abstract').val('');
+                $('#keywords').val('');
+                $('#tahun_akademik').val('');
+                $('form').attr('action', "{{ url('doc/tesis/add') }}");
+
+                // Sembunyikan preview
+                $('#existing-file').hide();
+                $('#file-preview').html('');
+                $('#file-name').text('');
+            }
+        });
+    });
+
 </script>
 @endsection

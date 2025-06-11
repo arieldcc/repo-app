@@ -33,11 +33,11 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" id="configDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Direktory
+                            Direktori
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="configDropdown">
                             <li><a class="dropdown-item" href="{{ url('penelitian') }}">Penelitian</a></li>
-                            <li><a class="dropdown-item" href="">Pengabdian</a></li>
+                            <li><a class="dropdown-item" href="{{ url('pengabdian') }}">Pengabdian</a></li>
                             <li><a class="dropdown-item" href="{{ url('skripsi') }}">Skripsi</a></li>
                             <li><a class="dropdown-item" href="{{ url('tesis') }}">Tesis</a></li>
                         </ul>
@@ -50,12 +50,12 @@
                         <a class="nav-link dropdown-toggle text-white" href="#" id="configDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Tools
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="configDropdown">
+                        <!-- <ul class="dropdown-menu" aria-labelledby="configDropdown">
                             <li><a class="dropdown-item" href="{{ url('history') }}">Riwayat</a></li>
                             <li><a class="dropdown-item" href="{{ url('info_cache') }}">Cache File Download (PPO+Knapsack+LRU)</a></li>
                             <li><a class="dropdown-item" href="#" onclick="startCheck()">Cek Cache - BG</a></li>
                             <li><a class="dropdown-item" href="{{ url('drl') }}">DRL - PPO</a></li>
-                        </ul>
+                        </ul> -->
                     </li>
                 </ul>
 
@@ -65,6 +65,11 @@
                         <li class="nav-item">
                             <a href="{{ url('logout') }}" class="nav-link text-white">
                                 <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url('panel/dashboard') }}" class="nav-link text-white" target="_blank">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
                             </a>
                         </li>
                     @else

@@ -17,7 +17,7 @@
                 <dd class="col-md-8">{{ $getPenelitian->title }}</dd>
 
                 <dt class="col-md-4">Penulis Utama</dt>
-                <dd class="col-md-8"><strong>{{ $getPenelitian->penulis }}</strong><br>
+                <dd class="col-md-8"><strong>{{ $getPenelitian->penulis_nama }}</strong><br>
                     <small class="text-muted">{{ $getPenelitian->email }}</small><br>
                     <small>{{ $getPenelitian->afiliasi }}</small>
                 </dd>
@@ -59,7 +59,9 @@
                             Indeks: <br>
                             Nasional: {{ $getPenelitian->indeks_nasional }} @if($getPenelitian->indeks_nasional == 'Y') ({{ $getPenelitian->peringkat_nasional }}) @endif <br>
                             Internasional: {{ $getPenelitian->indeks_internasional }} @if($getPenelitian->indeks_internasional == 'Y') ({{ $getPenelitian->peringkat_internasional }}) @endif <br>
-                            Lainnya: {{ $getPenelitian->indeks_lainnya ?? '-' }}
+                            Lainnya: {{ $getPenelitian->indeks_lainnya ?? '-' }} <br>
+                            Nama Jurnal: {{ $getPenelitian->nama_jurnal ?? '-' }} <br>
+                            DOI: {{ $getPenelitian->doi ?? '-' }}
                         </small>
                         @if ($getPenelitian->link_jurnal)
                             <br><a href="{{ $getPenelitian->link_jurnal }}" target="_blank" class="btn btn-sm btn-info mt-2">Lihat Jurnal</a>

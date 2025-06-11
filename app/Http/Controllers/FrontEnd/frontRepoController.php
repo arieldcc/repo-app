@@ -247,6 +247,64 @@ class frontRepoController extends Controller
             'selected_abstrak' => $request->abstrak,
         ]);
     }
+    
+    public function repoPengabdian(Request $request){
+        $query = DocumentModel::getListPenelitian()
+            ->where('documents.type', 'pengabdian')
+            ->where('documents.status', 'approved');
+
+        if ($request->filled('judul')) {
+            $query->where('documents.title', 'LIKE', '%' . $request->judul . '%');
+        }
+
+        if ($request->filled('abstrak')) {
+            $query->where('documents.abstract', 'LIKE', '%' . $request->abstrak . '%');
+        }
+
+        if ($request->filled('tahun')) {
+            $query->where('documents.tahun_akademik', $request->tahun);
+        }
+
+        $tahun_list = DocumentModel::where('type', 'pengabdian')
+            ->where('status', 'approved')
+            ->select('tahun_akademik')
+            ->selectRaw('COUNT(*) as jumlah_data')
+            ->groupBy('tahun_akademik')
+            ->orderByDesc('tahun_akademik')
+            ->get();
+
+        $pengabdian_all = $query->orderByDesc('upload_date')->get();
+        $jum_data = $pengabdian_all->count();
+
+        foreach ($pengabdian_all as $item) {
+            $extension = pathinfo($item->file_path, PATHINFO_EXTENSION);
+            $item->icon = match (strtolower($extension)) {
+                'pdf' => 'pdf.png',
+                'doc', 'docx' => 'doc.png',
+                'ppt', 'pptx' => 'ppt.png',
+                'xls', 'xlsx' => 'excel.png',
+                'rar', 'zip' => 'zip.png',
+                default => 'empty.png',
+            };
+        }
+
+        $page = $request->get('page', 1);
+        $perPage = 15;
+        $offset = ($page - 1) * $perPage;
+        $paginated = $pengabdian_all->slice($offset, $perPage);
+        $total_pages = (int) ceil($jum_data / $perPage);
+
+        return view('FrontEndRepo.Repo.pengabdian', [
+            'pengabdian_data' => $paginated,
+            'jum_data' => $jum_data,
+            'page' => $page,
+            'total_pages' => $total_pages,
+            'tahun_list' => $tahun_list,
+            'selected_tahun' => $request->tahun,
+            'selected_judul' => $request->judul,
+            'selected_abstrak' => $request->abstrak,
+        ]);
+    }
 
     public function autocompleteSkripsi(Request $request){
         $term = $request->term;
@@ -332,6 +390,7 @@ class frontRepoController extends Controller
             $log->tipe_data = 'halaman web';
             $log->aksi = 'detail';
             $log->durasi_akses = $waktu_respon;
+            $log->client_response_expected = request()->server('REQUEST_TIME_FLOAT') ? microtime(true) - request()->server('REQUEST_TIME_FLOAT') : null;
             $log->data_json = json_encode([
                 'title' => $skripsi->title,
                 'file_path' => $skripsi->file_path,
@@ -387,7 +446,10 @@ class frontRepoController extends Controller
             $log->tipe_data = 'halaman web';
             $log->aksi = 'detail';
             $log->durasi_akses = microtime(true) - $start_time;
+            $log->client_response_expected = request()->server('REQUEST_TIME_FLOAT') ? microtime(true) - request()->server('REQUEST_TIME_FLOAT') : null;
             $log->data_json = json_encode($penelitian);
+            $log->file_size = $penelitian->file_size;
+            $log->file_extension  = pathinfo($penelitian->file_path, PATHINFO_EXTENSION);
             $log->save();
 
             return view('FrontEndRepo.Repo.penelitianDetail', [
@@ -409,7 +471,7 @@ class frontRepoController extends Controller
 
             $tugasAkhir = DocumentModel::where('document_id', $id)->firstOrFail();
 
-            $file_path = public_path('storage/uploads/'.$type.'/' . $tugasAkhir->file_path);
+            $file_path = public_path('storage/uploads/'. strtolower($type) .'/' . $tugasAkhir->file_path);
 
             if (!file_exists($file_path)) {
                 abort(404, 'File tidak ditemukan.');
@@ -424,6 +486,18 @@ class frontRepoController extends Controller
             $log->referer = request()->headers->get('referer');
             $log->tipe_data = 'halaman web';
             $log->durasi_akses = microtime(true) - $start_time;
+            $log->client_response_expected = request()->server('REQUEST_TIME_FLOAT') ? microtime(true) - request()->server('REQUEST_TIME_FLOAT') : null;
+            $log->data_json = json_encode([
+                'title' => $tugasAkhir->title,
+                'file_path' => $tugasAkhir->file_path,
+                'uploaded_at' => $tugasAkhir->upload_date,
+                'prodi' => $tugasAkhir->nama_program_studi,
+                'mahasiswa' => $tugasAkhir->nama_mahasiswa,
+                'tahun_akademik' => $tugasAkhir->tahun_akademik,
+            ]);
+            // $log->data_json = json_encode($tugasAkhir);
+            $log->file_size = $tugasAkhir->file_size;
+            $log->file_extension  = pathinfo($tugasAkhir->file_path, PATHINFO_EXTENSION);
 
             // Cek mode preview
             if (request()->has('preview')) {

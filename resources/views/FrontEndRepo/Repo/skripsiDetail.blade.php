@@ -52,7 +52,7 @@
                     @endphp
 
                     @if ($ext === 'pdf')
-                        <iframe src="{{ url('doc/download/'.$type.'/'.$skripsi_list->document_id.'?preview=true') }}#toolbar=0"
+                        <iframe src="{{ url('/public/storage/uploads/'. strtolower($type) .'/'.$skripsi_list->file_path.'?preview=true') }}#toolbar=0"
                                 frameborder="0" width="100%" height="500px"
                                 class="mb-3 rounded border"></iframe>
                     @endif

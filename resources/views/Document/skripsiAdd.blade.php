@@ -101,13 +101,13 @@
                 },
                 cache: true
             }
-        });
+        }); 
 
         // Deteksi perubahan nim
         $('#nim').on('change', function () {
             let nim = $(this).val();
 
-            $.get("{{ url('api/skripsi/cek-nim') }}/" + nim, function(res) {
+            $.get("{{ url('api/cek-nim/skripsi') }}/" + nim, function(res) {
                 if (res && res.exists && res.data) {
                     // Tampilkan file jika tersedia
                     if (res.data.file_path) {

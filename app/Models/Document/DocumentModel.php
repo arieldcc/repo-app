@@ -27,21 +27,21 @@ class DocumentModel extends Model
     }
 
     public static function getListTugasAkhir(){
-        return self::select(['m_riwayat_pendidikan_mhs.nim',
-                            'm_mahasiswa.nama_mahasiswa',
-                            'm_riwayat_pendidikan_mhs.nama_program_studi',
-                            'documents.title',
-                            'documents.document_id',
-                            'documents.abstract',
-                            'documents.keywords',
-                            'documents.tahun_akademik',
-                            'documents.status',
-                            'documents.upload_date',
-                            'documents.file_path'])
-                    ->join('m_riwayat_pendidikan_mhs', 'm_riwayat_pendidikan_mhs.nim', '=', 'documents.penulis')
-                    ->join('m_mahasiswa', 'm_mahasiswa.id_mahasiswa','=','m_riwayat_pendidikan_mhs.id_mahasiswa')
-                    // ->where('documents.type', 'skripsi')
-                    ->orderBy('documents.tahun_akademik', 'DESC');
+        return self::select([
+            'documents.document_id',
+            'documents.title',
+            'documents.abstract',
+            'documents.keywords',
+            'documents.tahun_akademik',
+            'documents.status',
+            'documents.upload_date',
+            'documents.file_path',
+            'm_riwayat_pendidikan_mhs.nim as nim',
+            'm_riwayat_pendidikan_mhs.nama_program_studi as nama_program_studi',
+            'm_mahasiswa.nama_mahasiswa as nama_mahasiswa'
+        ])
+        ->join('m_riwayat_pendidikan_mhs', 'm_riwayat_pendidikan_mhs.nim', '=', 'documents.penulis')
+        ->join('m_mahasiswa', 'm_mahasiswa.id_mahasiswa','=','m_riwayat_pendidikan_mhs.id_mahasiswa');
     }
 
     public static function getDetailTugasAkhir($id){
@@ -64,7 +64,7 @@ class DocumentModel extends Model
 
     public static function getListPenelitian(){
         return self::select(['documents.document_id',
-                            'documents.penulis',
+                            'documents.penulis_nama',
                             'documents.email',
                             'documents.title',
                             'documents.afiliasi',
@@ -78,18 +78,19 @@ class DocumentModel extends Model
                             'documents.indeks_internasional',
                             'documents.peringkat_internasional',
                             'documents.indeks_lainnya',
+                            'documents.nama_jurnal',
+                            'documents.doi',
                             'documents.link_jurnal',
                             'documents.upload_date',
                             'documents.type',
                             'documents.file_path',
                             'documents.status',
-                            'documents.tahun_akademik'])
-                    ->orderBy('documents.tahun_akademik', 'DESC');
+                            'documents.tahun_akademik']);
     }
 
     public static function getDetailPenelitian($id){
         return self::select(['documents.document_id',
-                            'documents.penulis',
+                            'documents.penulis_nama',
                             'documents.email',
                             'documents.title',
                             'documents.afiliasi',
@@ -104,6 +105,8 @@ class DocumentModel extends Model
                             'documents.peringkat_internasional',
                             'documents.indeks_lainnya',
                             'documents.link_jurnal',
+                            'documents.nama_jurnal',
+                            'documents.doi',
                             'documents.upload_date',
                             'documents.type',
                             'documents.file_path',
