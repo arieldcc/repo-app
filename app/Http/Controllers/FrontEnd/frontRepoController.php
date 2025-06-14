@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\FrontEnd;
 
-use App\Helpers\RequestLogger;
+use App\Helpers\logRequestRepo;
 use App\Http\Controllers\Controller;
 use App\Models\Document\DocumentAuthorsModel;
 use App\Models\Document\DocumentModel;
@@ -385,7 +385,7 @@ class frontRepoController extends Controller
 
             // Simulasi logging (bisa disesuaikan dengan kebutuhan sistem logging real)
             // Simpan log dengan model
-            RequestLogger::logAccess([
+            logRequestRepo::logAccess([
                 'document' => $skripsi,
                 'aksi' => Str::contains($request->fullUrl(), 'download') ? 'download' : 'detail',
                 'start_time' => $start_time,
@@ -439,7 +439,7 @@ class frontRepoController extends Controller
 
             // Logging
 
-            RequestLogger::logAccess([
+            logRequestRepo::logAccess([
                 'document' => $penelitian,
                 'aksi' => Str::contains($request->fullUrl(), 'download') ? 'download' : 'detail',
                 'start_time' => $start_time,
@@ -482,7 +482,7 @@ class frontRepoController extends Controller
 
             // Logging akses
 
-            $log_id = RequestLogger::logAccess([
+            $log_id = logRequestRepo::logAccess([
                 'document' => $tugasAkhir,
                 'aksi' => 'download',
                 'start_time' => $start_time,

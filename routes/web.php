@@ -16,7 +16,7 @@ use App\Models\Master\FakultasModel;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('dashboard/v1', function () {
+Route::get('/', function () {
     return view('welcome');
 });
 
@@ -44,6 +44,8 @@ Route::post('/login', [AuthController::class, 'auth_login']);
 Route::get('logout', [AuthController::class, 'logout']);
 
 Route::group(['middleware' => 'useradmin'], function(){
+
+
     Route::get('panel/dashboard', [ControllerDashboard::class, 'dashboard']);
 
     Route::controller(DosenController::class)->group(function(){

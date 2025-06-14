@@ -31,7 +31,7 @@
         },
         "files": [
             "app/Helpers/permission.php",
-            "app/Helpers/RequestLogger.php"
+            "app/Helpers/logRequestRepo.php"
         ]
     },
     "autoload-dev": {

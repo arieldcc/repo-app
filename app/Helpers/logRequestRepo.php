@@ -6,9 +6,8 @@ use App\Models\Document\LogRequestModel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Jenssegers\Agent\Agent;
-use Illuminate\Support\Str;
 
-class RequestLogger
+class logRequestRepo
 {
     public static function logAccess(array $options = [])
     {
