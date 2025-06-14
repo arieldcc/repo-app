@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\FrontEnd;
 
+use App\Helpers\RequestLogger;
 use App\Http\Controllers\Controller;
 use App\Models\Document\DocumentAuthorsModel;
 use App\Models\Document\DocumentModel;
@@ -11,6 +12,9 @@ use App\Models\Konfigurasi\Repo\FrontendSettingModel;
 use App\Models\Konfigurasi\Repo\SliderModel;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class frontRepoController extends Controller
 {
@@ -247,7 +251,7 @@ class frontRepoController extends Controller
             'selected_abstrak' => $request->abstrak,
         ]);
     }
-    
+
     public function repoPengabdian(Request $request){
         $query = DocumentModel::getListPenelitian()
             ->where('documents.type', 'pengabdian')
@@ -347,7 +351,7 @@ class frontRepoController extends Controller
         return response()->json($data);
     }
 
-    public function detailTA($type, $id){
+    public function detailTA($type, $id, Request $request){
         try {
             // $type = ($type ?? '') === 'skripsi' ? 'SKRIPSI' : 'TESIS';
             $start_time = microtime(true);
@@ -381,25 +385,22 @@ class frontRepoController extends Controller
 
             // Simulasi logging (bisa disesuaikan dengan kebutuhan sistem logging real)
             // Simpan log dengan model
-            $log = new LogRequestModel();
-            $log->document_id = $skripsi->document_id;
-            $log->ip_address = request()->ip();
-            $log->user_agent = request()->userAgent();
-            $log->method = request()->method();
-            $log->referer = request()->headers->get('referer');
-            $log->tipe_data = 'halaman web';
-            $log->aksi = 'detail';
-            $log->durasi_akses = $waktu_respon;
-            $log->client_response_expected = request()->server('REQUEST_TIME_FLOAT') ? microtime(true) - request()->server('REQUEST_TIME_FLOAT') : null;
-            $log->data_json = json_encode([
-                'title' => $skripsi->title,
-                'file_path' => $skripsi->file_path,
-                'uploaded_at' => $skripsi->upload_date,
-                'prodi' => $skripsi->nama_program_studi,
-                'mahasiswa' => $skripsi->nama_mahasiswa,
-                'tahun_akademik' => $skripsi->tahun_akademik,
+            RequestLogger::logAccess([
+                'document' => $skripsi,
+                'aksi' => Str::contains($request->fullUrl(), 'download') ? 'download' : 'detail',
+                'start_time' => $start_time,
+                'access_origin' => 'storage',
+                'cache_hit' => 0,
+                'data_json' => json_encode([
+                                'title' => $skripsi->title,
+                                'file_path' => $skripsi->file_path,
+                                'uploaded_at' => $skripsi->upload_date,
+                                'prodi' => $skripsi->nama_program_studi,
+                                'mahasiswa' => $skripsi->nama_mahasiswa,
+                                'tahun_akademik' => $skripsi->tahun_akademik,
+                            ])
             ]);
-            $log->save();
+
 
             $type = strtoupper($type);
 
@@ -416,7 +417,7 @@ class frontRepoController extends Controller
         }
     }
 
-    public function docDetail($type, $id){
+    public function docDetail($type, $id, Request $request){
         try {
             $start_time = microtime(true);
 
@@ -437,20 +438,22 @@ class frontRepoController extends Controller
             // $file_path = $penelitian->file_path ? asset('public/storage/uploads/penelitian/' . $penelitian->file_path) : '#';
 
             // Logging
-            $log = new LogRequestModel();
-            $log->document_id = $penelitian->document_id;
-            $log->ip_address = request()->ip();
-            $log->user_agent = request()->userAgent();
-            $log->method = request()->method();
-            $log->referer = request()->headers->get('referer');
-            $log->tipe_data = 'halaman web';
-            $log->aksi = 'detail';
-            $log->durasi_akses = microtime(true) - $start_time;
-            $log->client_response_expected = request()->server('REQUEST_TIME_FLOAT') ? microtime(true) - request()->server('REQUEST_TIME_FLOAT') : null;
-            $log->data_json = json_encode($penelitian);
-            $log->file_size = $penelitian->file_size;
-            $log->file_extension  = pathinfo($penelitian->file_path, PATHINFO_EXTENSION);
-            $log->save();
+
+            RequestLogger::logAccess([
+                'document' => $penelitian,
+                'aksi' => Str::contains($request->fullUrl(), 'download') ? 'download' : 'detail',
+                'start_time' => $start_time,
+                'access_origin' => 'storage',
+                'cache_hit' => 0,
+                'data_json' => json_encode([
+                                'title' => $penelitian->title,
+                                'file_path' => $penelitian->file_path,
+                                'uploaded_at' => $penelitian->upload_date,
+                                'prodi' => $penelitian->nama_program_studi,
+                                'mahasiswa' => $penelitian->nama_mahasiswa,
+                                'tahun_akademik' => $penelitian->tahun_akademik,
+                            ])
+            ]);
 
             return view('FrontEndRepo.Repo.penelitianDetail', [
                 'penelitian' => $penelitian,
@@ -478,40 +481,53 @@ class frontRepoController extends Controller
             }
 
             // Logging akses
-            $log = new LogRequestModel();
-            $log->document_id = $tugasAkhir->document_id;
-            $log->user_agent = request()->userAgent();
-            $log->ip_address = request()->ip();
-            $log->method = request()->method();
-            $log->referer = request()->headers->get('referer');
-            $log->tipe_data = 'halaman web';
-            $log->durasi_akses = microtime(true) - $start_time;
-            $log->client_response_expected = request()->server('REQUEST_TIME_FLOAT') ? microtime(true) - request()->server('REQUEST_TIME_FLOAT') : null;
-            $log->data_json = json_encode([
-                'title' => $tugasAkhir->title,
-                'file_path' => $tugasAkhir->file_path,
-                'uploaded_at' => $tugasAkhir->upload_date,
-                'prodi' => $tugasAkhir->nama_program_studi,
-                'mahasiswa' => $tugasAkhir->nama_mahasiswa,
-                'tahun_akademik' => $tugasAkhir->tahun_akademik,
+
+            $log_id = RequestLogger::logAccess([
+                'document' => $tugasAkhir,
+                'aksi' => 'download',
+                'start_time' => $start_time,
+                'data_json' => json_encode([
+                                'title' => $tugasAkhir->title,
+                                'file_path' => $tugasAkhir->file_path,
+                                'uploaded_at' => $tugasAkhir->upload_date,
+                                'prodi' => $tugasAkhir->nama_program_studi,
+                                'mahasiswa' => $tugasAkhir->nama_mahasiswa,
+                                'tahun_akademik' => $tugasAkhir->tahun_akademik,
+                            ])
             ]);
-            // $log->data_json = json_encode($tugasAkhir);
-            $log->file_size = $tugasAkhir->file_size;
-            $log->file_extension  = pathinfo($tugasAkhir->file_path, PATHINFO_EXTENSION);
+
+            $response = new StreamedResponse(function () use ($file_path, $start_time, $log_id) {
+                $stream = fopen($file_path, 'rb');
+                fpassthru($stream);
+                fclose($stream);
+
+                $transfer_duration = round((microtime(true) - $start_time) * 1000, 2);
+
+                LogRequestModel::where('log_id', $log_id)
+                    ->update(['transfer_duration_ms' => $transfer_duration]);
+
+                // Log::channel('requestlog')->info("Transfer complete for log $log_id | Duration: {$transfer_duration}ms");
+            });
+
+            $response->headers->set('Content-Type', mime_content_type($file_path));
+            $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
+                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                basename($file_path)
+            ));
+            $response->headers->set('X-Log-Id', $log_id);
+
+            return $response;
 
             // Cek mode preview
             if (request()->has('preview')) {
-                $log->aksi = 'preview';
-                $log->save();
+                // $log->aksi = 'preview';
+                // $log->save();z
 
                 // Tampilkan file langsung di browser (inline)
                 return response()->file($file_path, [
                     'Content-Type' => mime_content_type($file_path)
                 ]);
             }
-
-            $log->aksi = 'download';
-            $log->save();
 
             return response()->download($file_path, basename($tugasAkhir->file_path));
 

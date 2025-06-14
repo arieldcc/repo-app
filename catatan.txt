@@ -71,3 +71,6 @@ sudo chmod -R 777 storage/app/public/uploads
 ls -ld storage/app/public/uploads/skripsi
 Harus menghasilkan output seperti:
 drwxrwxr-x  2 _www  _www  ... skripsi
+
+
+composer require jenssegers/agent
