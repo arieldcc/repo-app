@@ -5,6 +5,7 @@ use App\Http\Controllers\Configurasi\Repo\CustomPagesController;
 use App\Http\Controllers\Configurasi\Repo\FrontendSettingController;
 use App\Http\Controllers\Configurasi\Repo\SliderController;
 use App\Http\Controllers\ControllerDashboard;
+use App\Http\Controllers\Dashboard\DashboardRequestLogController;
 use App\Http\Controllers\Document\DocumentController;
 use App\Http\Controllers\FrontEnd\frontRepoController;
 use App\Http\Controllers\Master\DosenController;
@@ -24,29 +25,36 @@ Route::get('dashboard/v2', function () {
     return view('welcome');
 });
 
-Route::controller(frontRepoController::class)->group(function(){
-    Route::get('/', 'repoIndex');
-    Route::get('/skripsi', 'repoSkripsi');
-    Route::get('/doc/detail/{type}/{id}', 'detailTA');
-    Route::get('/doc/download/{type}/{id}', 'downloadTA');
+Route::middleware(['throttle.bots'])->group(function(){
 
-    Route::get('/tesis', 'repoTesis');
-    Route::get('/penelitian', 'repoPenelitian');
-    Route::get('/pengabdian', 'repoPengabdian');
+    Route::controller(frontRepoController::class)->group(function(){
+        Route::get('/', 'repoIndex');
+        Route::get('/skripsi', 'repoSkripsi');
+        Route::get('/doc/detail/{type}/{id}', 'detailTA');
+        Route::get('/doc/download/{type}/{id}', 'downloadTA');
 
-    Route::get('/penelitian/detail/{type}/{id}', 'docDetail');
+        Route::get('/tesis', 'repoTesis');
+        Route::get('/penelitian', 'repoPenelitian');
+        Route::get('/pengabdian', 'repoPengabdian');
 
-    Route::get('/api/autocomplete-skripsi', 'autocompleteSkripsi');
+        Route::get('/penelitian/detail/{type}/{id}', 'docDetail');
+
+        Route::get('/api/autocomplete-skripsi', 'autocompleteSkripsi');
+    });
+
 });
+
 
 Route::get('/login', [AuthController::class, 'login']);
 Route::post('/login', [AuthController::class, 'auth_login']);
 Route::get('logout', [AuthController::class, 'logout']);
 
 Route::group(['middleware' => 'useradmin'], function(){
-
-
     Route::get('panel/dashboard', [ControllerDashboard::class, 'dashboard']);
+
+    Route::controller(DashboardRequestLogController::class)->group(function(){
+        Route::get('dashboard/log-requests', 'index');
+    });
 
     Route::controller(DosenController::class)->group(function(){
         Route::get('master/dosen', 'list');
@@ -115,7 +123,7 @@ Route::group(['middleware' => 'useradmin'], function(){
         Route::get('doc/dashboard/pie-prodi', 'dashboardProdiPie')->name('dashboard.pie-prodi');
         Route::get('doc/dashboard/prodi-by-type', 'getProdiByType')->name('dashboard.prodi-by-type');
         Route::get('doc/dashboard/chart-per-prodi', 'getChartByProdi')->name('dashboard.chart-by-prodi');
-        
+
         Route::get('doc/skripsi', 'skripsiList');
         Route::get('doc/skripsi/add', 'skripsiAdd');
         Route::post('doc/skripsi/add', 'skripsiInsert');

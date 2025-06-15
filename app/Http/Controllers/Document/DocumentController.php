@@ -52,7 +52,7 @@ class DocumentController extends Controller
                             ->limit(5)
                             ->get();
 
-        return view('Document.dashboard', compact(
+        return view('Dashboard.documentDashboard', compact(
             'countSkripsi',
             'countTesis',
             'countPenelitian',
@@ -151,7 +151,7 @@ class DocumentController extends Controller
             'data' => $data->pluck('total'),
         ]);
     }
-    
+
     public function skripsiList(Request $request){
 
         // DB::listen(function ($query) {

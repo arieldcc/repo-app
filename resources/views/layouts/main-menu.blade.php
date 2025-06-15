@@ -47,9 +47,9 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ url('dashboard/v2') }}" class="nav-link {{ Request::segment(2) == 'v2' ? 'active' : '' }}">
-                        <i class="far fa-circle nav-icon"></i>
-                        <p>Dashboard v2</p>
+                    <a href="{{ url('dashboard/log-requests') }}" class="nav-link {{ Request::segment(2) == 'log-requests' ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-history"></i>
+                        <p>Dashboard LogRequest</p>
                     </a>
                 </li>
             </ul>

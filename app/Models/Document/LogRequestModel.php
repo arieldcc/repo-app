@@ -25,4 +25,11 @@ class LogRequestModel extends Model
             $model->{$model->getKeyName()} = (string) Str::uuid();
         });
     }
+
+    static public function getListRecordLog(){
+        return self::select([
+            'documents.*',
+            'log_requests.*'
+        ])->join('documents', 'documents.document_id', '=', 'log_requests.document_id');
+    }
 }

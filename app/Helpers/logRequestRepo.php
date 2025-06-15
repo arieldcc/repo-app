@@ -45,5 +45,9 @@ class logRequestRepo
         $log->save();
 
         Log::channel('requestlog')->info(json_encode($log->toArray()));
+        //  dd([
+        //     'log_id' => $log->log_id,
+        //     'is_saved' => $log->wasRecentlyCreated,
+        // ]);
     }
 }
