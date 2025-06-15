@@ -74,3 +74,13 @@ drwxrwxr-x  2 _www  _www  ... skripsi
 
 
 composer require jenssegers/agent
+
+update project dari local ke git:
+1. git status
+2. git add .
+3. git commit -m "Komentar"
+4. git push origin main
+
+update project dari git ke local:
+git pull origin main
+
