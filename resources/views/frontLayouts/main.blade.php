@@ -68,7 +68,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ url('panel/dashboard') }}" class="nav-link text-white" target="_blank">
+                            <a href="{{ url('dashboard/repodashboard') }}" class="nav-link text-white" target="_blank">
                                 <i class="fas fa-tachometer-alt"></i> Dashboard
                             </a>
                         </li>

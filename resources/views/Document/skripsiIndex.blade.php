@@ -73,7 +73,7 @@
                 url: "{{ url('doc/skripsi') }}",
                 type: 'GET',
                 dataSrc: function (json) {
-                    console.log('🔍 JSON total records:', json.recordsTotal);
+                    console.log('JSON total records:', json.recordsTotal);
                     return json.data;
                 }
             },

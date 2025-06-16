@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="row">
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-4 col-6">
         <div class="small-box bg-info">
             <div class="inner">
                 <h3>{{ $totalRequests }}</h3>
@@ -19,7 +19,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-4 col-6">
         <div class="small-box bg-success">
             <div class="inner">
                 <h3>{{ $totalDownloads }}</h3>
@@ -30,7 +30,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-6">
+    <div class="col-lg-4 col-6">
         <div class="small-box bg-warning">
             <div class="inner">
                 <h3>{{ $totalDetails }}</h3>
@@ -41,17 +41,6 @@
             </div>
         </div>
     </div>
-    {{-- <div class="col-lg-3 col-6">
-        <div class="small-box bg-danger">
-            <div class="inner">
-                <h3>{{ $mostHitDoc->document_id ?? '-' }}</h3>
-                <p>Most Accessed Document</p>
-            </div>
-            <div class="icon">
-                <i class="fas fa-file-alt"></i>
-            </div>
-        </div>
-    </div> --}}
 </div>
 
 <!-- Chart -->
@@ -61,6 +50,15 @@
     </div>
     <div class="card-body">
         <canvas id="requestChart" height="100"></canvas>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">Grafik Dokumen Dilihat & Diunduh (10 Hari Terakhir)</h3>
+    </div>
+    <div class="card-body">
+        <canvas id="dokumenHarianChart" height="100"></canvas>
     </div>
 </div>
 
@@ -78,6 +76,7 @@
                     <th>Device</th>
                     <th>Aksi</th>
                     <th>Tipe Data</th>
+                    <th>Judul Dokumen</th>
                     <th>User Agent</th>
                 </tr>
             </thead>
@@ -89,6 +88,7 @@
                     <td>{{ $log->device }}</td>
                     <td>{{ $log->aksi }}</td>
                     <td>{{ $log->tipe_data }}</td>
+                    <td>{{ $log->document_title ?? '-' }}</td>
                     <td>{{ Str::limit($log->user_agent, 80) }}</td>
                 </tr>
                 @endforeach
@@ -99,25 +99,25 @@
 
 <div class="card mt-4">
     <div class="card-header">
-        <h3 class="card-title">Pemetaan Aktivitas per IP per Hari</h3>
+        <h3 class="card-title">Pemetaan Aktivitas per Dokumen</h3>
     </div>
     <div class="card-body table-responsive">
-        <table id="pemetaanTable" class="table table-bordered table-striped">
+        <table id="dokumenTable" class="table table-bordered table-striped">
             <thead class="thead-light">
                 <tr>
-                    <th>Tanggal</th>
-                    <th>IP Address</th>
+                    <th>No.</th>
                     <th>Judul Dokumen</th>
-                    <th>Jumlah Akses</th>
+                    <th>Jumlah Dilihat</th>
+                    <th>Jumlah Download</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($pemetaanIP as $data)
+                @foreach($pemetaanDokumen as $index => $data)
                 <tr>
-                    <td>{{ $data->tanggal }}</td>
-                    <td>{{ $data->ip_address }}</td>
+                    <td>{{ $loop->iteration }}</td>
                     <td>{{ $data->title }}</td>
-                    <td>{{ $data->jumlah_akses }}</td>
+                    <td>{{ $data->jumlah_detail }}</td>
+                    <td>{{ $data->jumlah_download }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -138,6 +138,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    $('#dokumenTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        pageLength: 10
+        // order: [[3, 'desc']] 
+    });
+
 $(function () {
     $('#requestTable').DataTable({
         responsive: true,
@@ -171,5 +178,37 @@ $(function () {
         }
     });
 });
+
+// Grafik Dokumen Harian (Detail vs Download)
+    const ctxHarian = document.getElementById('dokumenHarianChart').getContext('2d');
+    const dokumenChart = new Chart(ctxHarian, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($grafikDokumenHarian->pluck('tanggal')) !!},
+            datasets: [
+                {
+                    label: 'Dilihat (detail)',
+                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    data: {!! json_encode($grafikDokumenHarian->pluck('jumlah_detail')) !!}
+                },
+                {
+                    label: 'Diunduh (download)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    data: {!! json_encode($grafikDokumenHarian->pluck('jumlah_download')) !!}
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    precision: 0
+                }
+            }
+        }
+    });
 </script>
 @endsection
