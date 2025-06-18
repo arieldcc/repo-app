@@ -584,7 +584,7 @@ class DocumentController extends Controller
             'doi'                       => 'nullable|string|max:250',
             'link_jurnal'              => 'nullable|url|max:200',
             'tahun_akademik'           => 'required|string|max:5',
-            'file_path'                => 'nullable|file|mimes:pdf|max:5120',
+            'file_path'                => 'nullable|file|mimes:pdf',
             'authors'                  => 'nullable|array',
             'authors.*.author_name'     => 'nullable|string|max:255',
             'authors.*.author_email'    => 'nullable|email|max:250',
@@ -669,7 +669,7 @@ class DocumentController extends Controller
             'email' => 'required|email',
             'afiliasi' => 'required|string',
             'tahun_akademik' => 'required|string',
-            'file_path' => 'nullable|mimes:pdf|max:5120',
+            'file_path' => 'nullable|mimes:pdf',
         ]);
 
         // Ambil data penelitian

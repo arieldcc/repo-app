@@ -511,43 +511,6 @@ $(document).ready(function() {
     // Inisialisasi awal untuk authors[0]
     initAuthorSelect2('select[name="authors[0][author_name]"]');
 
-    // ==== SweetAlert untuk notifikasi & autofill mode update ====
-    let existingDocumentId = null;
-
-    $('#title').on('blur change', function () {
-        let title = $('#title').val();
-        let fieldKeep = 'title';
-
-        if (title.length >= 5) {
-            $.get("{{ url('api/check-penelitian') }}", { title: title }, function (res) {
-                if (res.exists) {
-                    existingDocumentId = res.data.document_id;
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Data Sudah Ada',
-                        text: 'Data penelitian dengan judul ini sudah ada di database. Form otomatis akan terisi untuk mode update.',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
-                    fillPenelitianForm(res.data, res.authors);
-                    $('form button[type="submit"]').html('<i class="fas fa-check"></i> Update');
-                    $('form').attr('action', "{{ url('doc/penelitian/edit') }}/" + existingDocumentId);
-                    $('form').attr('method', 'POST');
-                    if (!$('input[name="_method"]').length) {
-                        $('form').append('<input type="hidden" name="_method" value="POST">');
-                    }
-                } else {
-                    existingDocumentId = null;
-                    resetFormExcept(fieldKeep);
-                    $('#title').val(title); // Pastikan judul tetap
-                    $('form button[type="submit"]').html('<i class="fas fa-check"></i> Simpan');
-                    $('form').attr('action', "{{ url('doc/penelitian/add') }}");
-                    $('input[name="_method"]').remove();
-                }
-            });
-        }
-    });
-
 });
 </script>
 @endsection

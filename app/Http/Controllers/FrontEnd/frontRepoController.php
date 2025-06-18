@@ -12,6 +12,7 @@ use App\Models\Konfigurasi\Repo\FrontendSettingModel;
 use App\Models\Konfigurasi\Repo\SliderModel;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -23,10 +24,56 @@ class frontRepoController extends Controller
         $sliders = SliderModel::where('status', 'Y')->orderBy('order')->get();
         $customPages = CustomPagesModel::where('status', 'Y')->get();
 
+        // Ambil 15 berkas terbaru
+        $latestDocuments = DocumentModel::where('status', 'approved')
+            ->orderByDesc('upload_date')
+            ->limit(10)
+            ->get();
+
+        // Sering dilihat
+        $mostViewed = DocumentModel::select('documents.*')
+            ->selectRaw('(SELECT COUNT(*) FROM log_requests WHERE log_requests.document_id = documents.document_id AND aksi = "detail") as view_count')
+            ->join('log_requests', 'documents.document_id', '=', 'log_requests.document_id')
+            ->where('documents.status', 'approved')
+            ->where('log_requests.aksi', 'detail')
+            ->groupBy('documents.document_id')
+            ->orderByDesc('view_count')
+            ->limit(10)
+            ->get();
+
+        // Sering diunduh
+        $mostDownloaded = DocumentModel::select('documents.*')
+            ->selectRaw('(SELECT COUNT(*) FROM log_requests WHERE log_requests.document_id = documents.document_id AND aksi = "download") as download_count')
+            ->join('log_requests', 'documents.document_id', '=', 'log_requests.document_id')
+            ->where('documents.status', 'approved')
+            ->where('log_requests.aksi', 'download')
+            ->groupBy('documents.document_id')
+            ->orderByDesc('download_count')
+            ->limit(10)
+            ->get();
+
+
+        foreach ([$latestDocuments, $mostViewed, $mostDownloaded] as $docs) {
+            foreach ($docs as $item) {
+                $extension = pathinfo($item->file_path, PATHINFO_EXTENSION);
+                $item->icon = match (strtolower($extension)) {
+                    'pdf' => 'pdf.png',
+                    'doc', 'docx' => 'doc.png',
+                    'ppt', 'pptx' => 'ppt.png',
+                    'xls', 'xlsx' => 'excel.png',
+                    'rar', 'zip' => 'zip.png',
+                    default => 'empty.png',
+                };
+            }
+        }
+
         return view('FrontEndRepo.Repo.repoIndex', [
             'setting' => $activeSetting,
             'sliders' => $sliders,
-            'customPages' => $customPages
+            'customPages' => $customPages,
+            'latestDocuments' => $latestDocuments,
+            'mostViewed' => $mostViewed,
+            'mostDownloaded' => $mostDownloaded,
         ]);
     }
 
